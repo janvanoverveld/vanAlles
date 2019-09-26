@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "outDir": "./js",
+    "strict": true,
+    "noImplicitAny": false,
+    "strictNullChecks": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  },
+  "files": [
+    "tester1.ts",
+    "tester2.ts",
+    "perfectNumber.ts",
+    "perfectNumberServer.ts"
+    ]
+}
