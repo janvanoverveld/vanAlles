@@ -1,37 +1,24 @@
 import * as request from 'request';
-import {receiveMessageServer} from './perfectNumberServer';
+import {sumOfDivisorsServer} from './sumOfDivisorsServer';
+
+const sleep:(ms:number)=>Promise<void> = (m) => new Promise(resolve => setTimeout(resolve, m));
 
 console.log(`start`);
 
-receiveMessageServer.start(30000);
+const sumOfDivisorsServerHost = 'localhost';
+const sumOfDivisorsServerPort = 30000;
 
-function getSumOfDivisors(numberToCheck:number):number{
-   let sumDivisors = 0;
-   for ( let j=1; j<numberToCheck; j++){
-      if (numberToCheck%j===0) sumDivisors += j;
-      if (Math.ceil(numberToCheck/2)<j) break;
-   }
-   return sumDivisors; 
-}
+const perfectNumberHost = 'localhost';
+const perfectNumberPort = 30001;
 
-const totalNumbers2 = 50000;
-
-console.time("perfectNumberTiming2");
-
-for ( let i=1; i<totalNumbers2; i++){
-   const sumDivisors = getSumOfDivisors(i);
-   if (sumDivisors === i) console.log(`Perfect number ${i}`);
-}
-
-console.timeEnd("perfectNumberTiming2");
+sumOfDivisorsServer.start(sumOfDivisorsServerPort);
 
 async function sendNumber (numberToCalculate:number):Promise<void> {
-    const host = 'localhost';
-    const port = 30000;
-    const numberToCalculateJson = JSON.stringify( {numberToCalculate:numberToCalculate } );
-    const options = { url: `http://${host}:${port}`,
+    const msg = `{ "numberToCalculate":${numberToCalculate}, "server":"${perfectNumberHost}", "port": ${perfectNumberPort} }`;
+    const messageForSumOfDivisorHost = JSON.parse( msg );
+    const options = { url: `http://${sumOfDivisorsServerHost}:${sumOfDivisorsServerPort}`,
                       headers: {'cache-control':'no-cache','Content-Type':'application/json','charset':'utf-8'},
-                      body: numberToCalculateJson,
+                      body: messageForSumOfDivisorHost,
                       json: true };
     return new Promise(
         (resolve,reject) => {
@@ -50,6 +37,14 @@ async function sendNumber (numberToCalculate:number):Promise<void> {
     );
 }
 
-sendNumber(100000);
+async function starter(){
+    await sendNumber(100000);
+    console.log(`ff wachten ${new Date()}`);
+    await sleep(500);
+    sumOfDivisorsServer.terminate();
+    console.log(`msg server terminated ${new Date()}`);
+}
+
+starter();
 
 console.log(`eind`);

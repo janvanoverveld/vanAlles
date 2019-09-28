@@ -1,20 +1,22 @@
 import * as http from 'http';
+import {sumOfDivisorsServer} from './sumOfDivisorsServer';
 
-function getSumOfDivisors(numberToCheck:number):number{
-    let sumDivisors = 0;
-    for ( let j=1; j<numberToCheck; j++){
-       if (numberToCheck%j===0) sumDivisors += j;
-       if (Math.ceil(numberToCheck/2)<j) break;
-    }
-    return sumDivisors; 
-} 
+const numberAndSumOfDivisorArray:Map<number,number> = new Map();
 
-function httpRestServer(req:http.IncomingMessage,res:http.ServerResponse):void {
+const sumOfDivisorsServerHost = 'localhost';
+const sumOfDivisorsServerPort = 30000;
+const perfectNumberHost       = 'localhost';
+const perfectNumberPort       = 30001;
+
+var perfectNumberServerActive:boolean = true;
+
+function httpPerfectNumberServerFunction(req:http.IncomingMessage,res:http.ServerResponse):void {
    const httpHeaders = {'cache-control':'no-cache','Content-Type':'application/json','charset':'utf-8'};
    if ( req.method === 'POST' ) {
       let postData:string;
       req.on('data', (data) => { postData = (postData===undefined)?data: postData+data; });
       req.on('end',  () => { try { console.log(`bericht ontvangen  ${postData}`);
+                                   //numberArray.push(JSON.parse(postData).numberToCalculate);
                                    res.writeHead(200, "OK", httpHeaders);
                                    res.end();
                              }
@@ -26,22 +28,26 @@ function httpRestServer(req:http.IncomingMessage,res:http.ServerResponse):void {
    res.writeHead(404, "page not found", httpHeaders);
 }
 
-var httpServer:http.Server = http.createServer(httpRestServer);
+var httpServerPerfectNumber:http.Server = http.createServer(httpPerfectNumberServerFunction);
 
 function start(port:number){
-    httpServer.listen(port);
+   httpServerPerfectNumber.listen(port);
 }
 
 function terminate(){
         setTimeout(
-           () => { httpServer.close();
+           () => { perfectNumberServerActive = false;
+                   httpServerPerfectNumber.close();
                    console.log('server is afgebroken, het protocol wordt nu geeindigd');
                  }, 5000 );
 }
 
-const receiveMessageServer = {
+const perfectNumberServer = {
     start: start
 ,   terminate:terminate
 }
 
-export {receiveMessageServer};
+
+perfectNumberServer.start(perfectNumberPort);
+sumOfDivisorsServer.start(sumOfDivisorsServerPort);
+
