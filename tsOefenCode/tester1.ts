@@ -1,5 +1,6 @@
 import * as request from 'request';
 import {sumOfDivisorsServer} from './sumOfDivisorsServer';
+import {numberToCalculateMessageType} from './perfectNumberServer';
 
 const sleep:(ms:number)=>Promise<void> = (m) => new Promise(resolve => setTimeout(resolve, m));
 
@@ -14,11 +15,10 @@ const perfectNumberPort = 30001;
 sumOfDivisorsServer.start(sumOfDivisorsServerPort);
 
 async function sendNumber (numberToCalculate:number):Promise<void> {
-    const msg = `{ "numberToCalculate":${numberToCalculate}, "server":"${perfectNumberHost}", "port": ${perfectNumberPort} }`;
-    const messageForSumOfDivisorHost = JSON.parse( msg );
+    const msg:numberToCalculateMessageType = { numberToCalculate:numberToCalculate, server:perfectNumberHost, port: perfectNumberPort };
     const options = { url: `http://${sumOfDivisorsServerHost}:${sumOfDivisorsServerPort}`,
                       headers: {'cache-control':'no-cache','Content-Type':'application/json','charset':'utf-8'},
-                      body: messageForSumOfDivisorHost,
+                      body: msg,
                       json: true };
     return new Promise(
         (resolve,reject) => {
