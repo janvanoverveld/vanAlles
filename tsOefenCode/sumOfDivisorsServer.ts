@@ -1,7 +1,10 @@
 
 import * as http from 'http';
-import * as request from 'request';
-import {numberWithSumOfDivisorsType,numberToCalculateMessageType} from './perfectNumberServer';
+import {TO_CALC,SUM_OF_DIVISORS} from './Messages';
+import {sendMessage} from './sendMessage';
+
+var sumOfDivisorServerHost='localhost';
+var sumOfDivisorServerPortNumber=0;
 
 function getSumOfDivisors(numberToCheck:number):number{
     const halfOfNumberToCheck = Math.ceil(numberToCheck/2);
@@ -15,38 +18,19 @@ function getSumOfDivisors(numberToCheck:number):number{
 
 var sumOfDivisorsServerActive:boolean = true;
 
-const numberArray:numberToCalculateMessageType[] = [];
-
-async function sendSumOfDivisors ( host:string, port:number, calculatedNumber:number, sumOfDivisors:number):Promise<void> {
-    const msg:numberWithSumOfDivisorsType = { numberToCalculate:calculatedNumber, sumOfDivisors:sumOfDivisors};
-    const options = { url: `http://${host}:${port}`,
-                      headers: {'cache-control':'no-cache','Content-Type':'application/json','charset':'utf-8'},
-                      body: msg,
-                      json: true };
-    return new Promise(
-        (resolve,reject) => {
-                request.post( options,
-                    (err) => {
-                        if (err) {
-                            console.log(`sumOfDivisorServer, error sendMessage ${err}`);
-                            reject(err);
-                        }
-                        else {
-                            resolve();
-                        }
-                    }
-                )
-        }
-    );
-}
+const numberArray:TO_CALC[] = [];
 
 function processNumbers(){
    const numberToProcess = numberArray.shift();
    if (numberToProcess){
-      const sumOfDivisors = getSumOfDivisors(numberToProcess.numberToCalculate);
-      console.log(`sumOfDivisorServer, sending calculated number ${numberToProcess.numberToCalculate}  and the summation of divisors is ${sumOfDivisors}`);
-      sendSumOfDivisors(numberToProcess.server,numberToProcess.port,numberToProcess.numberToCalculate,sumOfDivisors);
-      setImmediate( () => processNumbers() );
+      if (numberToProcess.valueToCalculate === -1) terminate();
+      else {
+        const sumOfDivisors = getSumOfDivisors(numberToProcess.valueToCalculate);
+        console.log(`sumOfDivisorServer, sending calculated number ${numberToProcess.valueToCalculate}  and the summation of divisors is ${sumOfDivisors}`);
+        const msg:SUM_OF_DIVISORS=new SUM_OF_DIVISORS(sumOfDivisorServerHost,sumOfDivisorServerPortNumber,numberToProcess.valueToCalculate,sumOfDivisors);
+        sendMessage(numberToProcess.hostFrom,numberToProcess.portFrom,msg);
+        setImmediate( () => processNumbers() );
+      }
    } else {
       if (!sumOfDivisorsServerActive) return;
       setTimeout( () => processNumbers(), 2000 );
@@ -73,8 +57,10 @@ function httpSumOfDivisorServerFunction(req:http.IncomingMessage,res:http.Server
 
 const httpSumOfDivisorServer:http.Server = http.createServer(httpSumOfDivisorServerFunction);
 
-function start(port:number){
-    httpSumOfDivisorServer.listen(port);
+function start(host:string, port:number){
+    sumOfDivisorServerHost = host;
+    sumOfDivisorServerPortNumber = port;
+    httpSumOfDivisorServer.listen(sumOfDivisorServerPortNumber);
     processNumbers();
 }
 
@@ -82,7 +68,7 @@ function terminate(){
         setTimeout(
            () => { sumOfDivisorsServerActive = false;
             httpSumOfDivisorServer.close();
-                   console.log('sumOfDivisorServer, server is afgebroken, het protocol wordt nu geeindigd');
+                   console.log(`sum of Divisor ${sumOfDivisorServerHost} Server for port ${sumOfDivisorServerPortNumber} is being terminated`);
                  }, 5000 );
 }
 

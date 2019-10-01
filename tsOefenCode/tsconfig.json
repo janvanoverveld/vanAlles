@@ -10,9 +10,12 @@
     "esModuleInterop": true
   },
   "files": [
-    "tester1.ts",
     "tester2.ts",
     "perfectNumber.ts",
-    "perfectNumberServer.ts"
+    "perfectNumberServer.ts",
+    "startSumOfDivisorServer.ts",
+    "sendMessage.ts",
+    "Messages.ts",
+    "start.ts"
     ]
 }
