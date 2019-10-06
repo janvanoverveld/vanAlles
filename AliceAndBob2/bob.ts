@@ -1,5 +1,5 @@
 import {Message,ADD,RES,BYE} from './Message';
-import {receiveMessageServer,sendMessage} from './httpCommunication';
+import {comm} from './communication';
 
 const hostAlice='localhost';
 const portAlice=30001;
@@ -7,19 +7,19 @@ const hostBob='localhost';
 const portBob=30002;
 
 async function startProtocol() {
-   let msg = <Message> await receiveMessageServer.waitForMessage();
+   let msg = <Message> await comm.recv();
    while ( msg && msg.name === ADD.name ) {
       const add:ADD = <ADD>msg;
       const res = new RES(add.value1+add.value2);
-      sendMessage(hostAlice, portAlice, res );
+      comm.send(hostAlice, portAlice, res );
       console.log(`An ADD received with ${add.value1} and ${add.value2}, send a RES with ${res.sum} back`);
-      msg = <Message> await receiveMessageServer.waitForMessage();
+      msg = <Message> await comm.recv();
    }
    console.log('the protocol stops for Bob');
-   receiveMessageServer.terminate();
+   comm.terminate();
 }
 
-receiveMessageServer.start(portBob);
+comm.start(portBob);
 
 startProtocol();
 

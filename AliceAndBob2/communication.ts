@@ -21,12 +21,6 @@ function httpRestServer(req:http.IncomingMessage,res:http.ServerResponse):void {
 
 const httpServer:http.Server = http.createServer(httpRestServer);
 
-const receiveMessageServer = {
-    start: startServer
-,   terminate:terminateServer
-,   waitForMessage:waitForMessage
-}
-
 async function sendMessage (host:string, port:number,msg:any):Promise<void> {
     //console.log(`send ${msg.name} Message to ${host}:${port}`);
     let resolver: () => void;
@@ -36,4 +30,12 @@ async function sendMessage (host:string, port:number,msg:any):Promise<void> {
     return promise;
 }
 
-export {receiveMessageServer,sendMessage};
+const comm = {
+    start: startServer
+,   terminate:terminateServer
+,   recv:waitForMessage
+,   send:sendMessage
+}
+
+
+export {comm};
