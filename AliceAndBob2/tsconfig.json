@@ -10,8 +10,6 @@
     "Message.ts",
     "alice.ts",
     "bob.ts",
-    "sendMessage.ts",
-    "receiveMessageServer.ts",
-    "start.ts"
+    "httpCommunication"
     ]
 }
